@@ -1,3 +1,45 @@
+# Personal Memo
+
+## Quick Installation
+
+WSL2 + Ubuntu18.04 + CUDA11.4
+
+```
+$ pyenv local 3.8.7
+$ python -m venv venv
+$ source venv/bin/activate
+$ pip install -U pip
+$ pip install torch==1.9.0+cu111 torchvision==0.10.0+cu111 -f https://download.pytorch.org/whl/torch_stable.html
+$ pip install mmcv-full==1.3.9 -f https://download.openmmlab.com/mmcv/dist/cu111/torch1.9.0/index.html
+$ pip install -r requirements.txt
+
+$ python setup.py develop
+
+$ mkdir data
+$ ln -s /mnt/h/data/HRNet/DEKR/pose_root/data/crowdpose data/crowdpose
+
+$ pip install mmdet
+$ pip install instaboostfast
+$ pip install git+https://github.com/cocodataset/panopticapi.git
+$ pip install git+https://github.com/lvis-dataset/lvis-api.git
+$ pip install albumentations>=0.3.2 --no-binary imgaug,albumentations
+```
+
+## Quick demo
+
+```
+$ cd checkpoints
+$ wget https://download.openmmlab.com/mmpose/bottom_up/higher_hrnet32_crowdpose_512x512-1aa4a132_20201017.pth
+$ cd ..
+
+$ python demo/bottom_up_video_demo.py     configs/body/2d_kpt_sview_rgb_img/associative_embedding/crowdpose/higherhrnet_w32_crowdpose_512x512.py     checkpoints/higher_hrnet32_crowdpose_512x512-1aa4a132_20201017.pth     --video-path demo/resources/demo.mp4 --out-video-root output
+
+$ python tools/train.py configs/body/2d_kpt_sview_rgb_img/associative_embedding/crowdpose/higherhrnet_w32_crowdpose_512x512.py    
+```
+
+----
+
+
 <div align="center">
     <img src="resources/mmpose-logo.png" width="400"/>
 </div>

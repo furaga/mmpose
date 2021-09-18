@@ -109,6 +109,7 @@ venv.bak/
 mmpose/version.py
 mmpose/.mim
 /models
+/checkpoints
 /data
 .vscode
 .idea
