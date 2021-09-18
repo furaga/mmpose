@@ -4,7 +4,7 @@ load_from = None
 resume_from = None
 dist_params = dict(backend='nccl')
 workflow = [('train', 1)]
-checkpoint_config = dict(interval=50)
+checkpoint_config = dict(interval=1)
 evaluation = dict(interval=50, metric='mAP', save_best='AP')
 
 optimizer = dict(
@@ -50,8 +50,9 @@ data_cfg = dict(
 # model settings
 model = dict(
     type='AssociativeEmbedding',
-    pretrained='https://download.openmmlab.com/mmpose/'
-    'pretrain_models/hrnet_w32-36af842e.pth',
+    pretrained="checkpoints/higher_hrnet32_crowdpose_512x512-1aa4a132_20201017.pth",
+    # pretrained='https://download.openmmlab.com/mmpose/'
+    # 'pretrain_models/hrnet_w32-36af842e.pth',
     backbone=dict(
         type='HRNet',
         in_channels=3,
@@ -178,7 +179,7 @@ test_pipeline = val_pipeline
 
 data_root = 'data/crowdpose'
 data = dict(
-    samples_per_gpu=24,
+    samples_per_gpu=1,
     workers_per_gpu=2,
     train=dict(
         type='BottomUpCrowdPoseDataset',
