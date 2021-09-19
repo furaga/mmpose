@@ -16,7 +16,7 @@ def parse_args():
     parser.add_argument(
         "--list_path", type=Path, default=Path("data/anim_data_list.txt")
     )
-    #parser.add_argument("--out_path", type=Path, required=True)
+    parser.add_argument("--out_dir", type=Path, default=Path("out"))
     args = parser.parse_args()
     return args
 
@@ -38,14 +38,35 @@ def load_data_list(list_path):
             line = f.readline()
     return data_list
 
+def to_crowdpose(unity_ann):
+    return unity_ann
 
 def main(args):
     data_list = load_data_list(args.list_path)
+
+    all_annotations = []
+    image_counter = 0
     for annot_path, img_dir in data_list:
-        print(str(annot_path))
-        print(str(img_dir))
-        assert annot_path.exists(), str(annot_path)
-        assert img_dir.exists(), str(img_dir) + str(img_dir.exists())
+        with open(annot_path) as f:
+            d = json.loads(f.read())
+        annots = d["annotations"]
+        for ann in annots:
+            image_name = ann["image_name"]
+            image_id = image_counter
+            img_path = img_dir / image_name
+            out_img_path = args.out_dir / f"{image_id:08d}"
+            people = ann["people"]
+            unity_ann = {
+                "image_name": out_img_path.name,
+                "image_id": image_id,
+                "people": people,
+            }
+            new_ann = to_crowdpose(unity_ann)
+            all_annotations.append(new_ann)
+            image_counter += 1
+
+            print(new_ann)
+            exit()
 
 
 if __name__ == "__main__":
