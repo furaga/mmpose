@@ -5,7 +5,7 @@ resume_from = None
 dist_params = dict(backend='nccl')
 workflow = [('train', 1)]
 checkpoint_config = dict(interval=1)
-evaluation = dict(interval=50, metric='mAP', save_best='AP')
+evaluation = dict(interval=5, metric='mAP', save_best='AP')
 
 optimizer = dict(
     type='Adam',
@@ -182,21 +182,21 @@ data = dict(
     train=dict(
         type='BottomUpCrowdPoseDataset',
         ann_file=f'{data_root}/train/mmpose_anim_train.json',
-        img_prefix=f'{data_root}/',
+        img_prefix=f'{data_root}/train',
         data_cfg=data_cfg,
         pipeline=train_pipeline,
         dataset_info={{_base_.dataset_info}}),
     val=dict(
         type='BottomUpCrowdPoseDataset',
         ann_file=f'{data_root}/test/mmpose_anim_test.json',
-        img_prefix=f'{data_root}/',
+        img_prefix=f'{data_root}/test',
         data_cfg=data_cfg,
         pipeline=val_pipeline,
         dataset_info={{_base_.dataset_info}}),
     test=dict(
         type='BottomUpCrowdPoseDataset',
         ann_file=f'{data_root}/test/mmpose_anim_test.json',
-        img_prefix=f'{data_root}/',
+        img_prefix=f'{data_root}/test',
         data_cfg=data_cfg,
         pipeline=test_pipeline,
         dataset_info={{_base_.dataset_info}}),
