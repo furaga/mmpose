@@ -1,14 +1,20 @@
+"""
+$ python tools/dataset/unity_to_crowdpose.py \
+    --list_path data/anim_data_list_train.txt \
+    --out_dir /mnt/h/data/mmpose/anim/train \
+    --type train
+
+$ python tools/dataset/unity_to_crowdpose.py \
+    --list_path data/anim_data_list_test.txt \
+    --out_dir /mnt/h/data/mmpose/anim/test \
+    --type test
+"""
+
 import argparse
-import csv
-import os
 import shutil
-import time
-import sys
 from pathlib import Path
 import json
 import numpy as np
-
-from glob import glob
 
 
 def parse_args():
@@ -98,24 +104,25 @@ def make_crowdpose_json(annotations):
 
         for person in ann["people"]:
             n_keypoints, keypoints, bbox = get_kps_bbox(person, width, height)
-            d["annotations"].append(
-                {
-                    "num_keypoints": n_keypoints,
-                    "iscrowd": 0,
-                    "keypoints": keypoints,
-                    "image_id": ann["image_id"],
-                    "bbox": bbox,
-                    "category_id": 1,
-                    "id": annot_id,
-                }
-            )
-            annot_id += 1
+            if n_keypoints > 0:
+                d["annotations"].append(
+                    {
+                        "num_keypoints": n_keypoints,
+                        "iscrowd": 0,
+                        "keypoints": keypoints,
+                        "image_id": ann["image_id"],
+                        "bbox": bbox,
+                        "category_id": 1,
+                        "id": annot_id,
+                    }
+                )
+                annot_id += 1
 
     return d
 
 
 def main(args):
-    args.out_dir.mkdir(exist_ok=True)
+    args.out_dir.mkdir(exist_ok=True, parents=True)
     data_list = load_data_list(args.list_path)
 
     all_annotations = []
@@ -130,7 +137,7 @@ def main(args):
 
             img_path = img_dir / image_name
             out_img_path = args.out_dir / f"{image_id:08d}.jpg"
-            #shutil.copy(img_path, out_img_path)
+            shutil.copy(img_path, out_img_path)
 
             people = ann["people"]
             new_ann = {
@@ -141,7 +148,12 @@ def main(args):
             all_annotations.append(new_ann)
             image_counter += 1
 
+    print(f"{image_counter} images found.")
+
     d = make_crowdpose_json(all_annotations)
+    print(f"# Images: {len(d['images'])}")
+    print(f"# Annotations: {len(d['annotations'])}")
+
     out_json_path = args.out_dir / f"mmpose_anim_{args.type}.json"
     with open(out_json_path, "w") as f:
         json.dump(d, f)
