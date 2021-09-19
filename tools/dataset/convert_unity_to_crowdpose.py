@@ -38,10 +38,42 @@ def load_data_list(list_path):
             line = f.readline()
     return data_list
 
-def to_crowdpose(unity_ann):
-    return unity_ann
+
+def make_crowdpose_json(annotations):
+    with open("data/crowdpose_base.json") as f:
+        d = json.loads(f.read())
+
+    width, height = 1920, 1080
+    annot_id = 0
+    for ann in annotations:
+        d["images"].append(
+            {
+                "file_name": ann["image_name"],
+                "id": ann["image_id"],
+                "height": height,
+                "width": width,
+                "crowdIndex": 0,  # 不要？
+            }
+        )
+
+        for person in ann["people"]:
+            d["annotations"].append(
+                {
+                    "num_keypoints": 0,
+                    "iscrowd": 0,
+                    "keypoints": 0,
+                    "image_id": ann["image_id"],
+                    "bbox": 0,
+                    "category_id": 1,
+                    "id": annot_id,
+                }
+            )
+            annot_id += 1
+    return d
+
 
 def main(args):
+    args.out_dir.mkdir(exist_ok=True)
     data_list = load_data_list(args.list_path)
 
     all_annotations = []
@@ -53,20 +85,26 @@ def main(args):
         for ann in annots:
             image_name = ann["image_name"]
             image_id = image_counter
+
             img_path = img_dir / image_name
-            out_img_path = args.out_dir / f"{image_id:08d}"
+            out_img_path = args.out_dir / f"{image_id:08d}.jpg"
+            shutil.copy(img_path, out_img_path)
+
             people = ann["people"]
-            unity_ann = {
+            new_ann = {
                 "image_name": out_img_path.name,
                 "image_id": image_id,
                 "people": people,
             }
-            new_ann = to_crowdpose(unity_ann)
             all_annotations.append(new_ann)
             image_counter += 1
 
             print(new_ann)
             exit()
+
+    d = make_crowdpose_json(all_annotations)
+    with open(args.out_dir / f"mmpose_anim_{args.type}.json", "w") as f:
+        json.dump(d, f)
 
 
 if __name__ == "__main__":
