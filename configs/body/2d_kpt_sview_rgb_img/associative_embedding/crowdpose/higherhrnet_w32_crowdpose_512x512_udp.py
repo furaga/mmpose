@@ -4,8 +4,8 @@ load_from = None
 resume_from = None
 dist_params = dict(backend='nccl')
 workflow = [('train', 1)]
-checkpoint_config = dict(interval=1)
-evaluation = dict(interval=50, metric='mAP', save_best='AP')
+checkpoint_config = dict(interval=50)
+evaluation = dict(interval=5, metric='mAP', save_best='AP')
 
 optimizer = dict(
     type='Adam',
@@ -179,7 +179,7 @@ test_pipeline = val_pipeline
 
 data_root = 'data/crowdpose'
 data = dict(
-    samples_per_gpu=1,
+    samples_per_gpu=24,
     workers_per_gpu=2,
     train=dict(
         type='BottomUpCrowdPoseDataset',
