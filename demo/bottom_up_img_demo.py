@@ -1,4 +1,13 @@
 # Copyright (c) OpenMMLab. All rights reserved.
+
+"""
+python demo/bottom_up_img_demo.py \
+    configs/body/2d_kpt_sview_rgb_img/associative_embedding/crowdpose/higherhrnet_w32_anim_512x512_udp.py \
+    work_dirs/higherhrnet_w32_anim_512x512_udp/best_AP_epoch_20.pth \
+    --img-path data/anim/train \
+    --show 
+"""
+
 import os
 import os.path as osp
 import warnings

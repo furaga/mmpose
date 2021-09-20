@@ -21,7 +21,7 @@ RUN pip install mmcv-full==latest+torch1.6.0+cu101 -f https://download.openmmlab
 
 # Install MMPose
 RUN conda clean --all
-RUN git clone https://github.com/open-mmlab/mmpose.git /mmpose
+RUN git clone https://github.com/furaga/mmpose /mmpose
 WORKDIR /mmpose
 RUN mkdir -p /mmpose/data
 ENV FORCE_CUDA="1"
