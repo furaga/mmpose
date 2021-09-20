@@ -3,9 +3,10 @@
 """
 python demo/bottom_up_img_auto_annotation.py \
     configs/body/2d_kpt_sview_rgb_img/associative_embedding/crowdpose/higherhrnet_w32_anim_512x512_udp.py \
-    work_dirs/higherhrnet_w32_anim_512x512_udp/best_AP_epoch_80.pth \
+    checkpoints/best_AP_epoch_80.pth \
     --img_dir /mnt/d/workspace/anim/screenshots/RAW/rezero \
-    --out_dir out
+    --out_dir /mnt/d/workspace/anim/screenshots/posed/rezero/pose \
+    --sample-span 30
 """
 
 import os
@@ -45,6 +46,10 @@ def main():
         "--pose-nms-thr", type=float, default=0.9, help="OKS threshold for pose NMS"
     )
 
+    parser.add_argument(
+        "--sample-span", type=int, default=1, help="OKS threshold for pose NMS"
+    )
+
     args = parser.parse_args()
 
     Path(args.out_dir).mkdir(exist_ok=True)
@@ -81,6 +86,8 @@ def main():
 
     # process each image
     annotations = []
+
+    image_list = image_list[:: args.sample_span]
     for i, image_name in enumerate(image_list):
         if i % 10 == 0:
             print(
@@ -104,7 +111,7 @@ def main():
             n_kps = 0
             keypoints = []
             for x, y, score in kps:
-                keypoints += [int(x), int(y), 1 if score > args.kpt_thr else 0]
+                keypoints += [int(x), int(y), 1]
                 if score > args.kpt_thr:
                     n_kps += 1
             if n_kps > 4:
@@ -126,10 +133,6 @@ def main():
                     "people": people,
                 }
             )
-
-        # 多すぎても修正しきれないので200枚くらいを上限にしておく
-        if len(annotations) >= 200:
-            break
 
     d = {
         "annotations": annotations,
