@@ -1,6 +1,6 @@
 _base_ = ['../../../../_base_/datasets/crowdpose.py']
 log_level = 'INFO'
-load_from = None
+load_from = "checkpoints/higher_hrnet32_crowdpose_512x512-1aa4a132_20201017.pth"
 resume_from = None
 dist_params = dict(backend='nccl')
 workflow = [('train', 1)]
@@ -50,7 +50,8 @@ data_cfg = dict(
 # model settings
 model = dict(
     type='AssociativeEmbedding',
-    pretrained="checkpoints/higher_hrnet32_crowdpose_512x512-1aa4a132_20201017.pth",
+    pretrained="https://download.openmmlab.com/mmpose/"
+    "pretrain_models/hrnet_w32-36af842e.pth",
     backbone=dict(
         type='HRNet',
         in_channels=3,
