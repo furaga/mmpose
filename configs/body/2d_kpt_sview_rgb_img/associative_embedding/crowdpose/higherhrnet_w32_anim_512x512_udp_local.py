@@ -177,7 +177,7 @@ test_pipeline = val_pipeline
 
 data_root = 'data/anim'
 data = dict(
-    samples_per_gpu=24,
+    samples_per_gpu=1,
     workers_per_gpu=2,
     train=dict(
         type='BottomUpCrowdPoseDataset',
