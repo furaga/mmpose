@@ -1,13 +1,7 @@
 """
-$ python tools/dataset/unity_to_crowdpose.py \
-    --list_path data/anim_data_list_train.txt \
-    --out_dir /mnt/h/data/mmpose/anim/train \
-    --type train
-
-$ python tools/dataset/unity_to_crowdpose.py \
-    --list_path data/anim_data_list_test.txt \
-    --out_dir /mnt/h/data/mmpose/anim/test \
-    --type test
+$ python tools/dataset/visualize_crowdpose.py \
+    --json_path /mnt/h/data/mmpose/anim/train/mmpose_anim_train.json \
+    --img_dir /mnt/h/data/mmpose/anim/train
 """
 
 import argparse
@@ -80,7 +74,9 @@ def main(args):
         img_name = image_dict[ann["image_id"]]
         annotation_dict.setdefault(img_name, []).append([ann["bbox"], ann["keypoints"]])
 
-    for img_name, bbox_kps in annotation_dict.items():
+    all_img_paths = sorted(list(annotation_dict.keys()))
+    for img_name in all_img_paths[200:]:
+        bbox_kps = annotation_dict[img_name]
         img_path = args.img_dir / img_name
         img = cv2.imread(str(img_path))
 
@@ -111,7 +107,7 @@ def main(args):
                     )
 
         cv2.imshow("img", img)
-        if cv2.waitKey(1) == ord("q"):
+        if cv2.waitKey(0) == ord("q"):
             break
 
 

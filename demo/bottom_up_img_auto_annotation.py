@@ -123,16 +123,15 @@ def main():
                     }
                 )
 
-        if len(people) >= 1:
-            out_img_path = Path(args.out_dir) / Path(image_name).name
-            shutil.copy(image_name, out_img_path)
-            annotations.append(
-                {
-                    "image_name": Path(image_name).name,
-                    "image_id": i,
-                    "people": people,
-                }
-            )
+        out_img_path = Path(args.out_dir) / Path(image_name).name
+        shutil.copy(image_name, out_img_path)
+        annotations.append(
+            {
+                "image_name": Path(image_name).name,
+                "image_id": i,
+                "people": people,
+            }
+        )
 
     d = {
         "annotations": annotations,

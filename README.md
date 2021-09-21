@@ -34,7 +34,9 @@ $ cd ..
 
 $ python demo/bottom_up_video_demo.py     configs/body/2d_kpt_sview_rgb_img/associative_embedding/crowdpose/higherhrnet_w32_crowdpose_512x512.py     checkpoints/higher_hrnet32_crowdpose_512x512-1aa4a132_20201017.pth     --video-path demo/resources/demo.mp4 --out-video-root output
 
-$ python tools/train.py configs/body/2d_kpt_sview_rgb_img/associative_embedding/crowdpose/higherhrnet_w32_crowdpose_512x512.py    
+$ python tools/train.py configs/body/2d_kpt_sview_rgb_img/associative_embedding/crowdpose/higherhrnet_w32_anim_512x512_udp.py    
+
+$ python tools/train.py configs/body/2d_kpt_sview_rgb_img/associative_embedding/crowdpose/higherhrnet_w32_anim_512x512_udp_local.py    
 ```
 
 ----
