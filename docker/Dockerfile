@@ -15,15 +15,16 @@ RUN apt-get update && apt-get install -y git ninja-build libglib2.0-0 libsm6 lib
 # Install xtcocotools
 RUN pip install cython
 RUN pip install xtcocotools
-RUN pip install -r requirements/optional.txt
 
 # Install MMCV
-RUN pip install mmcv-full==1.3.8+torch1.6.0+cu101 -f https://download.openmmlab.com/mmcv/dist/index.html
+RUN pip install mmcv-full==latest+torch1.6.0+cu101 -f https://download.openmmlab.com/mmcv/dist/index.html
+RUN pip install mmcv-full==1.3.8
 
 # Install MMPose
 RUN conda clean --all
 RUN git clone https://github.com/furaga/mmpose /mmpose
 WORKDIR /mmpose
+RUN pip install -r requirements/optional.txt
 RUN mkdir -p /mmpose/data
 ENV FORCE_CUDA="1"
 RUN pip install -r requirements/build.txt

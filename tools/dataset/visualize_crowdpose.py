@@ -2,6 +2,10 @@
 $ python tools/dataset/visualize_crowdpose.py \
     --json_path /mnt/h/data/mmpose/anim/train/mmpose_anim_train.json \
     --img_dir /mnt/h/data/mmpose/anim/train
+
+$ python tools/dataset/visualize_crowdpose.py \
+    --json_path /mnt/h/data/mmpose/anim/tmp/mmpose_anim_test.json \
+    --img_dir /mnt/h/data/mmpose/anim/tmp  
 """
 
 import argparse

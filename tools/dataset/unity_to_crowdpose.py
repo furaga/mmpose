@@ -8,13 +8,21 @@ $ python tools/dataset/unity_to_crowdpose.py \
     --list_path data/anim_data_list_test.txt \
     --out_dir /mnt/h/data/mmpose/anim/test \
     --type test
+
+$ python tools/dataset/unity_to_crowdpose.py \
+    --list_path data/tmp.txt \
+    --out_dir /mnt/h/data/mmpose/anim/tmp \
+    --type test
 """
 
 import argparse
+import cv2
 import shutil
 from pathlib import Path
 import json
 import numpy as np
+from glob import glob
+import random
 
 
 def parse_args():
@@ -22,6 +30,7 @@ def parse_args():
     parser.add_argument(
         "--list_path", type=Path, default=Path("data/anim_data_list.txt")
     )
+    parser.add_argument("--bg_dir", type=Path, default=Path("data/anim/background"))
     parser.add_argument("--out_dir", type=Path, default=Path("out"))
     parser.add_argument("--type", type=str, default="train")
     args = parser.parse_args()
@@ -41,7 +50,11 @@ def load_data_list(list_path):
                 if len(tokens) == 2:
                     annot_path = Path(root) / tokens[0].strip()
                     img_dir = Path(root) / tokens[1].strip()
-                    data_list.append((annot_path, img_dir))
+                    data_list.append((annot_path, img_dir, "real"))
+                if len(tokens) == 3:
+                    annot_path = Path(root) / tokens[0].strip()
+                    img_dir = Path(root) / tokens[1].strip()
+                    data_list.append((annot_path, img_dir, tokens[2].strip()))
             line = f.readline()
     return data_list
 
@@ -121,15 +134,36 @@ def make_crowdpose_json(annotations):
     return d
 
 
+def save_synth_image(img_path, bg_path, out_img_path):
+    img = cv2.imread(str(img_path))
+    bg = cv2.imread(str(bg_path))
+    mask = cv2.inRange(img, (0, 250, 0), (0, 255, 0))
+    mask = np.expand_dims(mask, axis=2).astype(np.uint8)
+    out_img = img * (1 - mask) + bg * mask
+    cv2.imwrite(str(out_img_path), out_img)
+
+
 def main(args):
     args.out_dir.mkdir(exist_ok=True, parents=True)
     data_list = load_data_list(args.list_path)
 
+    all_bg_paths = glob(str(args.bg_dir / "*.jpg"))
+    print(f"Found {len(all_bg_paths)} BG images")
+
     all_annotations = []
     image_counter = 0
-    for annot_path, img_dir in data_list:
-        with open(annot_path) as f:
-            d = json.loads(f.read())
+    for annot_path, img_dir, type in data_list:
+        if type == "synth":
+            # 画像ごとにjsonファイルがあるので統合する
+            all_json_paths = glob(str(Path(annot_path) / "*.json"))
+            d = {"annotations": []}
+            for json_path in all_json_paths:
+                with open(json_path) as f:
+                    _d = json.loads(f.read())
+                    d["annotations"] += _d["annotations"]
+        else:
+            with open(annot_path) as f:
+                d = json.loads(f.read())
         annots = d["annotations"]
         for ann in annots:
             image_name = ann["image_name"]
@@ -137,7 +171,11 @@ def main(args):
 
             img_path = img_dir / image_name
             out_img_path = args.out_dir / f"{image_id:08d}.jpg"
-            shutil.copy(img_path, out_img_path)
+            if type == "synth":
+                bg_path = all_bg_paths[random.randint(0, len(all_bg_paths) - 1)]
+                save_synth_image(img_path, bg_path, out_img_path)
+            else:
+                shutil.copy(img_path, out_img_path)
 
             people = ann["people"]
             new_ann = {
