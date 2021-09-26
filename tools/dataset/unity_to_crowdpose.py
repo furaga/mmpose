@@ -30,7 +30,7 @@ def parse_args():
     parser.add_argument(
         "--list_path", type=Path, default=Path("data/anim_data_list.txt")
     )
-    parser.add_argument("--bg_dir", type=Path, default=Path("data/anim/background"))
+    parser.add_argument("--bg_dir", type=Path, default=Path("data/background"))
     parser.add_argument("--out_dir", type=Path, default=Path("out"))
     parser.add_argument("--type", type=str, default="train")
     args = parser.parse_args()
@@ -138,8 +138,10 @@ def save_synth_image(img_path, bg_path, out_img_path):
     img = cv2.imread(str(img_path))
     bg = cv2.imread(str(bg_path))
     mask = cv2.inRange(img, (0, 250, 0), (0, 255, 0))
-    mask = np.expand_dims(mask, axis=2).astype(np.uint8)
-    out_img = img * (1 - mask) + bg * mask
+    mask = cv2.cvtColor(mask, cv2.COLOR_GRAY2BGR)
+    front = cv2.bitwise_and(img, cv2.bitwise_not(mask))
+    back = cv2.bitwise_and(bg, mask)
+    out_img = cv2.bitwise_or(front, back)
     cv2.imwrite(str(out_img_path), out_img)
 
 
@@ -152,6 +154,8 @@ def main(args):
 
     all_annotations = []
     image_counter = 0
+
+    save_image_info = {}
     for annot_path, img_dir, type in data_list:
         if type == "synth":
             # 画像ごとにjsonファイルがあるので統合する
@@ -171,11 +175,14 @@ def main(args):
 
             img_path = img_dir / image_name
             out_img_path = args.out_dir / f"{image_id:08d}.jpg"
+
+            img_info = []
             if type == "synth":
-                bg_path = all_bg_paths[random.randint(0, len(all_bg_paths) - 1)]
-                save_synth_image(img_path, bg_path, out_img_path)
+                n_bg = len(all_bg_paths)
+                bg_path = all_bg_paths[random.randint(0, n_bg - 1)]
+                img_info = [img_path, bg_path, out_img_path]
             else:
-                shutil.copy(img_path, out_img_path)
+                img_info = [img_path, "", out_img_path]
 
             people = ann["people"]
             new_ann = {
@@ -184,6 +191,7 @@ def main(args):
                 "people": people,
             }
             all_annotations.append(new_ann)
+            save_image_info[new_ann["image_name"]] = img_info
             image_counter += 1
 
     print(f"{image_counter} images found.")
@@ -193,9 +201,21 @@ def main(args):
     print(f"# Annotations: {len(d['annotations'])}")
 
     out_json_path = args.out_dir / f"mmpose_anim_{args.type}.json"
+    print(f"Saving {len(d['annotations'])} Annotation to", str(out_json_path))
     with open(out_json_path, "w") as f:
         json.dump(d, f)
-        print("Saved", out_json_path)
+
+    print("Saving images to", str(args.out_dir))
+    for i, e in enumerate(d["images"][::10]):
+        info = save_image_info[e["file_name"]]
+        if i % 50 == 0:
+            print(f"[{i+1}/{len(d['images'])}] {info[0]}")
+        if info[1] == "":
+            shutil.copy(info[0], info[2])
+        else:
+            save_synth_image(info[0], info[1], info[2])
+
+    print("Done")
 
 
 if __name__ == "__main__":
