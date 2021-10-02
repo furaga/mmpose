@@ -176,13 +176,13 @@ val_pipeline = [
 
 test_pipeline = val_pipeline
 
-data_root = 'data/anim'
+data_root = 'data/anim_crowdpose'
 data = dict(
     samples_per_gpu=24,
     workers_per_gpu=2,
     train=dict(
         type='BottomUpCrowdPoseDataset',
-        ann_file=f'{data_root}/train/mmpose_anim_train.json',
+        ann_file=f'{data_root}/train/mmpose_combined_train.json',
         img_prefix=f'{data_root}/train',
         data_cfg=data_cfg,
         pipeline=train_pipeline,

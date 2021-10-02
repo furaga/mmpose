@@ -59,24 +59,57 @@ def load_data_list(list_path):
     return data_list
 
 
+skeleton = [
+    [12, 13],
+    [13, 0],
+    [13, 1],
+    [0, 2],
+    [2, 4],
+    [1, 3],
+    [3, 5],
+    [13, 7],
+    [13, 6],
+    [7, 9],
+    [9, 11],
+    [6, 8],
+    [8, 10],
+]
+
+
 def get_kps_bbox(person, width, height):
+    def _is_valid(x, y, w):
+        if w <= 0:
+            return False
+        if x < 0 or width <= w or y < 0 or height <= y:
+            return False
+        return True
+
+    G = {}
+    for s, t in skeleton:
+        G.setdefault(s, []).append(t)
+        G.setdefault(t, []).append(s)
+
     keypoints = np.array(person["keypoints"]).astype(int)
     keypoints = keypoints.reshape((14, 3))
     n_keypoints = 0
     new_keypoints = []
-    for x, y, w in keypoints:
+    for i, (x, y, w) in enumerate(keypoints):
         valid = True
-        if w <= 0:
+        if not _is_valid(x, y, w):
             valid = False
-        if x < 0 or width <= w or y < 0 or height <= y:
-            valid = False
+            for j in G[i]:
+                x2, y2, w2 = keypoints[j]
+                # 隣接する関節がvalidなら有効
+                if _is_valid(x2, y2, w2):
+                    valid = True
+                    break
         if valid:
             new_keypoints.append((x, y, w))
             n_keypoints += 1
         else:
             new_keypoints.append((0, 0, 0))
     new_keypoints = np.array(new_keypoints)
-    n_keypoints -= 2
+    # n_keypoints -= 2
 
     xmin = np.min(new_keypoints[:, 0])
     xmax = np.max(new_keypoints[:, 0])
@@ -105,16 +138,7 @@ def make_crowdpose_json(annotations):
     width, height = 1920, 1080
     annot_id = 0
     for ann in annotations:
-        d["images"].append(
-            {
-                "file_name": ann["image_name"],
-                "id": ann["image_id"],
-                "height": height,
-                "width": width,
-                "crowdIndex": 0,  # 不要？
-            }
-        )
-
+        has_any = False
         for person in ann["people"]:
             n_keypoints, keypoints, bbox = get_kps_bbox(person, width, height)
             if n_keypoints > 0:
@@ -130,6 +154,17 @@ def make_crowdpose_json(annotations):
                     }
                 )
                 annot_id += 1
+                has_any = True
+        if has_any:
+            d["images"].append(
+                {
+                    "file_name": ann["image_name"],
+                    "id": ann["image_id"],
+                    "height": height,
+                    "width": width,
+                    "crowdIndex": 0,  # 不要？
+                }
+            )
 
     return d
 
@@ -206,7 +241,7 @@ def main(args):
         json.dump(d, f)
 
     print("Saving images to", str(args.out_dir))
-    for i, e in enumerate(d["images"][::10]):
+    for i, e in enumerate(d["images"]):
         info = save_image_info[e["file_name"]]
         if i % 50 == 0:
             print(f"[{i+1}/{len(d['images'])}] {info[0]}")

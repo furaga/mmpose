@@ -61,6 +61,7 @@ def parse_args():
     parser = argparse.ArgumentParser(description="")
     parser.add_argument("--json_path", type=Path, required=True)
     parser.add_argument("--img_dir", type=Path, required=True)
+    parser.add_argument("--step", type=int, default=1)
     args = parser.parse_args()
     return args
 
@@ -79,21 +80,12 @@ def main(args):
         annotation_dict.setdefault(img_name, []).append([ann["bbox"], ann["keypoints"]])
 
     all_img_paths = sorted(list(annotation_dict.keys()))
-    for img_name in all_img_paths[200:]:
+    for img_name in all_img_paths[::args.step]:
         bbox_kps = annotation_dict[img_name]
         img_path = args.img_dir / img_name
         img = cv2.imread(str(img_path))
 
-        for bbox, kps in bbox_kps:
-            # print(bbox)
-            # cv2.rectangle(
-            #     img,
-            #     (int(bbox[0]), int(bbox[1])),
-            #     (int(bbox[2]), int(bbox[3])),
-            #     (255, 255, 255),
-            #     3,
-            # )
-
+        for _, kps in bbox_kps:
             kps = np.reshape(kps, (14, 3))
             for i, (x, y, _) in enumerate(kps):
                 r, g, b = palette[i]
@@ -110,6 +102,7 @@ def main(args):
                         2,
                     )
 
+        img = cv2.resize(img, None, fx=0.7, fy=0.7)
         cv2.imshow("img", img)
         if cv2.waitKey(0) == ord("q"):
             break
